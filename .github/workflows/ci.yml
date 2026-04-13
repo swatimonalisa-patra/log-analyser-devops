@@ -26,7 +26,7 @@ jobs:
         # No external dependencies needed for this script
 
     - name: Run log analysis
-      run: python log_analyser.py --fail-on-error sample.log
+      run: python log_analyser.py --fail-on-error clean_sample.log
 
     - name: Upload analysis results
       uses: actions/upload-artifact@v4
