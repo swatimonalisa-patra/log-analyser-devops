@@ -64,6 +64,129 @@ python log_monitor.py /path/to/log/folder
 
 The monitor will automatically analyze any new or modified `.log` files in the specified folder.
 
+## Testing
+
+### Local Script Testing
+
+#### 1. Basic Analysis (with errors)
+```bash
+python log_analyser.py sample.log
+```
+**Expected:** Creates `summary.txt` and `summary.json` with 4 errors, 2 warnings
+
+#### 2. Clean Log Analysis (no errors)
+```bash
+python log_analyser.py clean_sample.log --output clean_summary
+```
+**Expected:** Creates reports with 0 errors, 2 warnings
+
+#### 3. Test Failure Mode
+```bash
+python log_analyser.py --fail-on-error sample.log
+```
+**Expected:** Exit code 1, message "Found 4 ERROR messages. Failing the build."
+
+#### 4. Test Success Mode
+```bash
+python log_analyser.py --fail-on-error clean_sample.log
+```
+**Expected:** Exit code 0, no failure message
+
+### CI/CD Pipeline Testing
+
+#### 1. Check GitHub Actions
+- Go to your repository: https://github.com/swatimonalisa-patra/log-analyser-devops
+- Click "Actions" tab
+- You should see workflow runs for each push to `main`
+- **Current status:** Should show ✅ **passing** (using `clean_sample.log`)
+
+#### 2. Test Pipeline Failure
+- Edit `.github/workflows/ci.yml`
+- Change `clean_sample.log` to `sample.log`
+- Commit and push
+- **Expected:** Pipeline fails with "Found 4 ERROR messages. Failing the build."
+
+#### 3. View Artifacts
+- In Actions, click on a successful run
+- Scroll to "Artifacts" section
+- Download `log-analysis-results` to see generated reports
+
+### Log Monitor Testing
+
+#### 1. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
+
+#### 2. Start Monitoring
+```bash
+python log_monitor.py /path/to/log/folder
+```
+**Expected:** "Monitoring folder: /path/to/log/folder"
+
+#### 3. Test File Detection
+- While monitor is running, create a new `.log` file in the monitored folder
+- **Expected:** "New log file detected: filename.log" followed by analysis results
+
+#### 4. Stop Monitoring
+- Press `Ctrl+C`
+- **Expected:** "Stopping monitoring..."
+
+### Edge Cases to Test
+
+#### 1. Empty Log File
+```bash
+echo "" > empty.log
+python log_analyser.py empty.log
+```
+**Expected:** Reports 0 messages
+
+#### 2. Log with Only INFO
+```bash
+echo "2024-01-15 10:23:01 INFO  Application started" > info_only.log
+python log_analyser.py info_only.log
+```
+**Expected:** Reports 0 ERROR/WARNING messages
+
+#### 3. Malformed Log Lines
+```bash
+echo "This is not a proper log line" > malformed.log
+python log_analyser.py malformed.log
+```
+**Expected:** Handles gracefully, reports 0 messages
+
+### Output Formats
+
+#### 1. Text Only
+```bash
+python log_analyser.py sample.log --format txt
+```
+
+#### 2. JSON Only
+```bash
+python log_analyser.py sample.log --format json
+```
+
+#### 3. Both (default)
+```bash
+python log_analyser.py sample.log --format both
+```
+
+### Quick Verification Checklist
+
+- [ ] Log analyser extracts ERROR/WARNING messages correctly
+- [ ] Frequency counting works
+- [ ] Top 3 identification works
+- [ ] Text and JSON reports generated
+- [ ] `--fail-on-error` exits with code 1 on errors
+- [ ] `--fail-on-error` exits with code 0 when no errors
+- [ ] CI/CD pipeline runs on GitHub
+- [ ] Pipeline passes with clean logs
+- [ ] Pipeline fails with error logs
+- [ ] Log monitor detects new files
+- [ ] Monitor runs analysis automatically
+- [ ] All scripts handle edge cases gracefully
+
 ## CI/CD Pipeline
 
 The GitHub Actions workflow (`.github/workflows/ci.yml`) automatically:
@@ -139,10 +262,15 @@ log-analyser-devops/
 ├── log_analyser.py          # Main analysis script
 ├── log_monitor.py           # Folder monitoring script
 ├── requirements.txt         # Python dependencies
-├── sample.log              # Sample log file for testing
+├── sample.log              # Sample log file with errors (for testing failures)
+├── clean_sample.log        # Clean log file without errors (for CI passing)
+├── test_logs/              # Test directory for log monitor testing
+│   ├── test_log.log        # Test log file
+│   └── new_test_log.log    # Additional test log file
 ├── .github/
 │   └── workflows/
 │       └── ci.yml         # GitHub Actions workflow
+├── .gitignore             # Git ignore rules
 └── README.md              # This file
 ```
 
