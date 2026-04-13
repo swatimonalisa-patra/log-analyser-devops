@@ -1,0 +1,38 @@
+name: Log Analysis CI/CD
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  analyze-logs:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+
+    - name: Install dependencies
+      run: |
+        # No external dependencies needed for this script
+
+    - name: Run log analysis
+      run: python log_analyser.py --fail-on-error sample.log
+
+    - name: Upload analysis results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: log-analysis-results
+        path: |
+          summary.txt
+          summary.json
